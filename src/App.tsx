@@ -10,10 +10,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 // Firebase imports
 import { FormEvent, useState } from "react";
-import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db } from "@/config/firebaseConfig";
+import { arrayUnion, collection, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { auth, db, storage } from "@/config/firebaseConfig";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import Navbar from "./components/navbar";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+
+import infinia from "@/assets/infinia.png";
 
 interface TeamMembers {
     name: string;
@@ -24,9 +27,6 @@ interface Task {
     id: string;
     taskName: string;
     description: string;
-    isCompleted: boolean;
-    accepted: boolean;
-    grade: number;
     photoURL: string | null;
 }
 
@@ -36,10 +36,10 @@ interface TeamData {
     tasks: Task[];
 }
 
-
 function App() {
     const [user, setUser] = useState(false);
     const [userID, setUserID] = useState("");
+    const [teamName, setTeamName] = useState("");
     const [teamData, setTeamData] = useState<TeamData>({
         teamName: "",
         teamMembers: [
@@ -55,6 +55,7 @@ function App() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [teamDataSubmitted, setTeamDataSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const handleTeamDataSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -91,9 +92,6 @@ function App() {
                     id: doc.id,
                     taskName: data.taskName || "",
                     description: data.description || "",
-                    isCompleted: data.isCompleted || false,
-                    accepted: data.accepted || false,
-                    grade: data.grade || 0,
                     photoURL: data.photoURL || null
                 };
             });
@@ -216,12 +214,56 @@ function App() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             console.log("Document data:", docSnap.data());
+            setTeamName(docSnap.data().teamName);
+            setTeamData(docSnap.data() as TeamData);
             setTeamDataSubmitted(true);
+            await fetchTasks();
         } else {
             console.log("No such document!");
         }
     }
 
+    // Upload Image + Data
+    const uploadTaskData = async (teamName: string, taskId: string, imageFile: File) => {
+        try {
+            const storageRef = ref(storage, `team_images/${teamName}/${taskId}`);
+            const snapshot = await uploadBytes(storageRef, imageFile);        
+            const imageUrl = await getDownloadURL(snapshot.ref);
+            const teamDocRef = doc(db, "teams", userID); // Reference to the team document
+        
+            await updateDoc(teamDocRef, {
+                tasks: arrayUnion({ taskId, imageUrl, serverTimestamp }) // Add the new task without overwriting the array
+            });
+        } catch (error) {
+          console.error("Error uploading task data:", error);
+          throw new Error("Failed to upload task data");
+        }
+    };
+
+
+    // Handle file selection
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files[0]) {
+            setSelectedFile(event.target.files[0]);
+        }
+    }
+
+    const handleUpload = async (taskID: string) => {
+        if (!selectedFile) {
+          alert("Please select an image file before uploading.");
+          return;
+        }
+    
+        try {
+          const uploadedData = await uploadTaskData(teamName, taskID, selectedFile);
+          console.log("Uploaded data:", uploadedData);
+          alert("File uploaded successfully!");
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          alert("File upload failed.");
+        }
+    };
+    
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             {userID && ( <Navbar onSignOut={handleSignOut} /> )}
@@ -230,6 +272,9 @@ function App() {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                         <Card className="w-[350px]">
                             <CardHeader className="space-x-1">
+                                <div className="flex justify-center items-center">
+                                    <img src={infinia} alt="Infinia Logo" className="object-fit h-16" />
+                                </div>
                                 <CardTitle className="text-2xl">Welcome Back</CardTitle>
                                 <CardDescription>Enter your email to sign in or create an account</CardDescription>
                             </CardHeader>
@@ -305,6 +350,9 @@ function App() {
                     <>
                         {!teamDataSubmitted ? (
                             <motion.form onSubmit={handleTeamDataSubmit} className="border dark:border-gray-700 p-5 rounded-3xl gap-6 shadow-lg bg-gray-800" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
+                                <div className="flex justify-center items-center">
+                                    <img src={infinia} alt="Infinia Logo" className="object-fit h-16" />
+                                </div>
                                 <h2 className="text-center text-4xl mb-6">Enter Team Details</h2>
                                 <div className="mb-4">
                                     <label className="block text-xl mb-1">Team Name:</label>
@@ -331,16 +379,27 @@ function App() {
                             </motion.form>
                         ) : (
                             <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }}>
+                                <div className="flex justify-center items-center">
+                                    <img src={infinia} alt="Infinia Logo" className="object-fit h-16" />
+                                </div>
                                 <h2 className="text-3xl mb-6">Your Tasks</h2>
                                 {tasks.length > 0 ? (
-                                    tasks.map((task) => (
-                                        <motion.div key={task.id} className="task bg-gray-800 p-4 mb-4 rounded-lg shadow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} >
-                                            <h3 className="text-2xl mb-2">{task.taskName}</h3>
-                                            <p className="mb-4">{task.description}</p>
-                                            <Input type="file" accept="image/*" className="w-full border-b border-gray-400 focus:border-blue-500 bg-transparent" />
-                                            <Button className="w-full mt-2">Upload</Button>
-                                        </motion.div>
-                                    ))
+                                    tasks
+                                        .filter(task => !teamData.tasks.some(teamTask => teamTask.taskId === task.id))
+                                        .map(task => (
+                                            <motion.div key={task.id} className="task bg-gray-800 p-4 mb-4 rounded-lg shadow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} >
+                                                <h3 className="text-2xl mb-2">{task.taskName}</h3>
+                                                <p className="mb-4">{task.description}</p>
+
+                                                {/* File input to select an image */}
+                                                <Input type="file" accept="image/*" className="w-full border-b border-gray-400 focus:border-blue-500 bg-transparent" onChange={(e) => handleFileChange(e)} />
+
+                                                {/* Upload button to trigger the upload */}
+                                                <Button className="w-full mt-2" onClick={() => handleUpload(task.id)} disabled={isLoading}>
+                                                    {isLoading ? "Uploading..." : "Upload Image"}
+                                                </Button>
+                                            </motion.div>
+                                        ))
                                 ) : (
                                     <p>No tasks available.</p>
                                 )}
@@ -353,5 +412,6 @@ function App() {
         </ThemeProvider>
     );
 }
+
 
 export default App;
