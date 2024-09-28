@@ -239,6 +239,7 @@ function App() {
             await updateDoc(teamDocRef, {
                 tasks: arrayUnion({ taskId, imageUrl, timestamp }) // Add the new task without overwriting the array
             });
+            await checkData(userID);
         } catch (error) {
           console.error("Error uploading task data:", error);
           throw new Error("Failed to upload task data");
@@ -275,8 +276,8 @@ function App() {
     }
 
     const handleShowRegulation = () => {
-        setShowRule(true);
-        setShowRegualtions(false);
+        setShowRule(false);
+        setShowRegualtions(true);
     }
 
     const close = () => {
@@ -288,20 +289,20 @@ function App() {
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             {userID && ( <Navbar onSignOut={handleSignOut} /> )}
             <div className="flex justify-center items-center gap-4 py-2">
-                <Button onClick={handleShowRule}>
-                    {showRule ? "Hide": "Show Rules"}
-                </Button>
-                <Button onClick={handleShowRegulation}>
-                    {showRegualtions ? "Hide" : "How To Play?"}
-                </Button>
+                {!showRule && (
+                    <Button onClick={handleShowRule}> Rules & Regulations </Button>
+                )}
+                {!showRegualtions && (
+                    <Button onClick={handleShowRegulation}> How To play? </Button>
+                )}
                 {(showRule || showRegualtions) && (
                     <Button onClick={close}>Close</Button>
                 )}
             </div>
             {showRule && (
-                <div className="flex justify-center">
+                <div className="flex flex-col justify-center px-4">
                     <h3>Rules & Regulations</h3>
-                    <ol className="list-disc">
+                    <ol className="list-disc ml-6">
                         <li>Team leaders are responsible for all actions of their respective teams.</li>
                         <li>All participants must complete the hunt within the time frame. Late arrivals will not be allowed additional time.</li>
                         <li>Participants must use the designated AR app to find and unlock clues.</li>
@@ -321,9 +322,9 @@ function App() {
                 </div>
             )}
             {showRegualtions && (
-                <div className="flex justify-center">
+                <div className="flex flex-col justify-center px-4">
                     <h3>How To Play?</h3>
-                    <ol className="list-disc">
+                    <ol className="list-disc ml-6">
                         <li>This Treasure hunt constitutes puzzles and riddles that teams must get through together to complete 3 levels in the form of AR keys - Copper Key, Jade Key and Crystal Key respectively.</li>
                         <li>The teams will be given curated and unique envelopes containing the materials that have all the clues required to reach the end. Do not try to go astray from the given clues.</li>
                         <li>Only follow the clues indicated in the materials to ensure concluding the event and failure to means that you are going down the wrong path.</li>
@@ -345,7 +346,7 @@ function App() {
                     </ol>
                 </div>
             )}
-            <div className="p-6 flex flex-col justify-center items-center min-h-screen w-full bg-gray-900 text-white">
+            <div className="p-6 flex flex-col justify-center items-center min-h-screen w-full text-white">
                 {!user ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                         <Card className="w-[350px]">
@@ -366,11 +367,7 @@ function App() {
 
                                 {/* Login Form with animation */}
                                 <TabsContent value="login">
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ duration: 0.5 }}
-                                    >
+                                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} >
                                         <form onSubmit={handleLogin}>
                                             <CardContent className="space-y-4">
                                                 <div className="space-y-2">
