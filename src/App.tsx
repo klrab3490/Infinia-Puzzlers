@@ -20,7 +20,6 @@ import infinia from "@/assets/infinia.png";
 
 interface TeamMembers {
     name: string;
-    email: string;
 }
 
 interface Task {
@@ -44,10 +43,10 @@ function App() {
     const [teamData, setTeamData] = useState<TeamData>({
         teamName: "",
         teamMembers: [
-            { name: "", email: "" },
-            { name: "", email: "" },
-            { name: "", email: "" },
-            { name: "", email: "" }
+            { name: "" },
+            { name: "" },
+            { name: "" },
+            { name: "" }
         ],
         tasks: []
     });
@@ -200,10 +199,10 @@ function App() {
         setTeamData({
             teamName: "",
             teamMembers: [
-                { name: "", email: "" },
-                { name: "", email: "" },
-                { name: "", email: "" },
-                { name: "", email: "" }
+                { name: "" },
+                { name: "" },
+                { name: "" },
+                { name: "" }
             ],
             tasks: []
         });
@@ -445,10 +444,6 @@ function App() {
                                                 <label className="block text-md mb-1">Name:</label>
                                                 <Input type="text" value={member.name} onChange={(e) => handleInputChange(index, "name", e.target.value)} className="w-full border-b border-gray-400 focus:border-blue-500 bg-transparent" required />
                                             </div>
-                                            <div>
-                                                <label className="block text-md mb-1">Email:</label>
-                                                <Input type="email" value={member.email} onChange={(e) => handleInputChange(index, "email", e.target.value)} className="w-full border-b border-gray-400 focus:border-blue-500 bg-transparent" required />
-                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -465,9 +460,10 @@ function App() {
                                 {tasks.length > 0 ? (
                                     tasks
                                         .filter(task => !teamData.tasks.some(teamTask => teamTask.taskId === task.id))
+                                        .reverse()
                                         .map(task => (
                                             <motion.div key={task.id} className="task bg-gray-800 p-4 mb-4 rounded-lg shadow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} >
-                                                <h3 className="text-2xl mb-2">{task.taskName}</h3>
+                                                <h3 className="text-center text-2xl mb-2">{task.taskName}</h3>
                                                 <p className="mb-4">{task.description}</p>
 
                                                 {/* File input to select an image */}
