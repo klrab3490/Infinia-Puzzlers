@@ -16,7 +16,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "fire
 import Navbar from "./components/navbar";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
-import infinia from "@/assets/infinia.png";
+import infinia from "@/assets/Infinia.png";
 
 interface TeamMembers {
     name: string;
