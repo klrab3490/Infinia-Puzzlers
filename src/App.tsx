@@ -361,7 +361,7 @@ function App() {
                                 <div className="px-6 pb-6">
                                     <TabsList className="grid w-full grid-cols-2">
                                         <TabsTrigger value="login">Login</TabsTrigger>
-                                        <TabsTrigger value="register">Register</TabsTrigger>
+                                        {/* <TabsTrigger value="register">Register</TabsTrigger> */}
                                     </TabsList>
                                 </div>
 
@@ -390,11 +390,7 @@ function App() {
 
                                 {/* Registration Form with animation */}
                                 <TabsContent value="register">
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ duration: 0.5 }}
-                                    >
+                                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} >
                                         <form onSubmit={handleRegister}>
                                             <CardContent className="space-y-4">
                                                 <div className="space-y-2">
