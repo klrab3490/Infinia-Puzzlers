@@ -24,10 +24,11 @@ interface TeamMembers {
 }
 
 interface Task {
+    [x: string]: string;
     id: string;
     taskName: string;
     description: string;
-    photoURL: string | null;
+    photoURL: string;
 }
 
 interface TeamData {
@@ -56,6 +57,9 @@ function App() {
     const [teamDataSubmitted, setTeamDataSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [showRule, setShowRule] = useState(false);
+    const [showRegualtions, setShowRegualtions] = useState(false);
+
 
     const handleTeamDataSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -230,9 +234,11 @@ function App() {
             const snapshot = await uploadBytes(storageRef, imageFile);        
             const imageUrl = await getDownloadURL(snapshot.ref);
             const teamDocRef = doc(db, "teams", userID); // Reference to the team document
+
+            const timestamp = new Date().toISOString(); 
         
             await updateDoc(teamDocRef, {
-                tasks: arrayUnion({ taskId, imageUrl, serverTimestamp }) // Add the new task without overwriting the array
+                tasks: arrayUnion({ taskId, imageUrl, timestamp }) // Add the new task without overwriting the array
             });
         } catch (error) {
           console.error("Error uploading task data:", error);
@@ -263,10 +269,83 @@ function App() {
           alert("File upload failed.");
         }
     };
+
+    const handleShowRule = () => {
+        setShowRule(true);
+        setShowRegualtions(false);
+    }
+
+    const handleShowRegulation = () => {
+        setShowRule(true);
+        setShowRegualtions(false);
+    }
+
+    const close = () => {
+        setShowRule(false);
+        setShowRegualtions(false);
+    }
     
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             {userID && ( <Navbar onSignOut={handleSignOut} /> )}
+            <div className="flex justify-center items-center gap-4 py-2">
+                <Button onClick={handleShowRule}>
+                    {showRule ? "Hide": "Show Rules"}
+                </Button>
+                <Button onClick={handleShowRegulation}>
+                    {showRegualtions ? "Hide" : "How To Play?"}
+                </Button>
+                {(showRule || showRegualtions) && (
+                    <Button onClick={close}>Close</Button>
+                )}
+            </div>
+            {showRule && (
+                <div className="flex justify-center">
+                    <h3>Rules & Regulations</h3>
+                    <ol className="list-disc">
+                        <li>Team leaders are responsible for all actions of their respective teams.</li>
+                        <li>All participants must complete the hunt within the time frame. Late arrivals will not be allowed additional time.</li>
+                        <li>Participants must use the designated AR app to find and unlock clues.</li>
+                        <li>All clues must be solved in sequence. Skipping clues is not allowed.</li>
+                        <li>Do not tamper with other team’s clues, otherwise leads to a review or disqualification.</li>
+                        <li>Collaborating with other teams or participants outside your registered team is prohibited.</li>
+                        <li>Any form of cheating, including sharing answers, will result in immediate disqualification.</li>
+                        <li>Teams are allowed to use their smartphones to solve AR clues and internet to solve all puzzles and riddles.</li>
+                        <li>Please follow all event venue guidelines. Do not damage or disturb any property or individuals during the hunt.</li>
+                        <li>Clues will be located in public areas. Do not attempt to access restricted locations.</li>
+                        <li>The winning team will be the first to complete the hunt by solving all clues correctly or have the most keys attained within the time limit.</li>
+                        <li>In case of a tie, the team with the fastest overall completion time will be declared the winner.</li>
+                        <li>Participants must prioritize safety at all times.</li>
+                        <li>The event organizers reserve the right to modify the rules, disqualify teams for violations, or halt the event in case of unforeseen circumstances.</li>
+                        <li>All decisions made by the organizers are final and binding.</li>
+                    </ol>
+                </div>
+            )}
+            {showRegualtions && (
+                <div className="flex justify-center">
+                    <h3>How To Play?</h3>
+                    <ol className="list-disc">
+                        <li>This Treasure hunt constitutes puzzles and riddles that teams must get through together to complete 3 levels in the form of AR keys - Copper Key, Jade Key and Crystal Key respectively.</li>
+                        <li>The teams will be given curated and unique envelopes containing the materials that have all the clues required to reach the end. Do not try to go astray from the given clues.</li>
+                        <li>Only follow the clues indicated in the materials to ensure concluding the event and failure to means that you are going down the wrong path.</li>
+                        <li>Clues will be revealed from cards at various physical locations through the AR app. Teams must find each key to progress to the next level.</li>
+                        <li>A website along with preset login details will be given to the team leader to upload the screenshots of each key.</li>
+                        <li>A validation process will be done after uploading to ensure you got the correct combination of keys and images, and allows us to check if you are on the right pathway curated to your team.</li>
+                        <li>Ending of each level requires you to find printed images that, when scanned through the AR applications, gives the respective level keys that must be screenshot and uploaded to the given website.</li>
+                        <li>The team leader will be given the .apk file for the AR application. Make sure that it is properly installed in your chosen device or seek guidance from your assigned organizer.</li>
+                        <li>Ensure your smartphone or tablet is fully charged before the event. A portable charger is recommended in case your device runs low on battery.</li>
+                        <li>Try to use devices with Android 11 or higher. The more updated the device, the better. iOS devices are not supported.</li>
+                        <li>Time - Might be subject to changes:
+                            <ol type="a">
+                            <li>5:00 PM to 6:30 PM ~ Sat 28 Sep</li>
+                            <li>9:00 AM to 3:00 PM ~ Sun 29 Sep</li>
+                            </ol>
+                        </li>
+                        <li>Free roam to find clues is allowed only for the participants within the given area limits.</li>
+                        <li>Check the WhatsApp group often to receive updates first.</li>
+                    </ol>
+                </div>
+            )}
             <div className="p-6 flex flex-col justify-center items-center min-h-screen w-full bg-gray-900 text-white">
                 {!user ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
