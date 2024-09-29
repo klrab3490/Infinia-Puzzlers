@@ -359,9 +359,9 @@ function App() {
                             </CardHeader>
                             <Tabs defaultValue="login" className="w-full">
                                 <div className="px-6 pb-6">
-                                    <TabsList className="grid w-full grid-cols-2">
+                                    <TabsList className="grid w-full grid-cols-1">
                                         <TabsTrigger value="login">Login</TabsTrigger>
-                                        <TabsTrigger value="register">Register</TabsTrigger>
+                                        {/* <TabsTrigger value="register">Register</TabsTrigger> */}
                                     </TabsList>
                                 </div>
 
