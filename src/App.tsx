@@ -361,7 +361,7 @@ function App() {
                                 <div className="px-6 pb-6">
                                     <TabsList className="grid w-full grid-cols-2">
                                         <TabsTrigger value="login">Login</TabsTrigger>
-                                        {/* <TabsTrigger value="register">Register</TabsTrigger> */}
+                                        <TabsTrigger value="register">Register</TabsTrigger>
                                     </TabsList>
                                 </div>
 
