@@ -64,7 +64,7 @@ function App() {
         e.preventDefault();
         setIsLoading(true);
         try {
-            console.log("Team data submitted:", teamData);
+            // console.log("Team data submitted:", teamData);
             await setDoc(doc(db, "teams", userID), {
                 ...teamData,
                 userID: userID,
@@ -73,12 +73,11 @@ function App() {
             setTeamDataSubmitted(true);
             // Save team data to Firestore or handle it as needed
             await fetchTasks(); // Fetch tasks after submitting team data
-        } catch (error) {
-            setError("Error submitting team data:");
+        } catch(error) {
             if (error instanceof Error) {
-                setMessage(error.message);
+                setError(`Error submitting team data: ${error.message}`);
             } else {
-                setMessage("An unknown error occurred");
+                setError("An unknown error occurred");
             }
         } finally {
             setIsLoading(false);
@@ -99,12 +98,11 @@ function App() {
                 };
             });
             setTasks(tasksData);
-        } catch (error) {
-            setError("Error submitting team data:");
+        } catch(error) {
             if (error instanceof Error) {
-                setMessage(error.message);
+                setError(`Error submitting team data: ${error.message}`);
             } else {
-                setMessage("An unknown error occurred");
+                setError("An unknown error occurred");
             }
         }
     };
@@ -133,15 +131,14 @@ function App() {
             const loggedInUser = userCredential.user.uid;
             setUserID(loggedInUser);
             setUser(true);  // Assuming `user` indicates login status
-            console.log("Logged In User ID:", loggedInUser);
+            // console.log("Logged In User ID:", loggedInUser);
             setMessage("Login successful!");
             checkData(loggedInUser);
-        } catch (error) {
-            setError("Error logging in:");
+        }  catch(error) {
             if (error instanceof Error) {
-                setMessage(error.message);
+                setError(`Error submitting team data: ${error.message}`);
             } else {
-                setMessage("An unknown error occurred");
+                setError("An unknown error occurred");
             }
         } finally {
             setIsLoading(false);
@@ -179,7 +176,7 @@ function App() {
             setUser(true);  // Assuming `user` indicates login status
             setMessage("Registration successful!");
     
-            console.log("Registered User ID:", registeredUser);
+            // console.log("Registered User ID:", registeredUser);
         } catch (error) {
             if (error instanceof Error) {
                 setError("Error registering user");
@@ -216,13 +213,13 @@ function App() {
         const docRef = doc(db, "teams", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            console.log("Document data:", docSnap.data());
+            // console.log("Document data:", docSnap.data());
             setTeamName(docSnap.data().teamName);
             setTeamData(docSnap.data() as TeamData);
             setTeamDataSubmitted(true);
             await fetchTasks();
         } else {
-            console.log("No such document!");
+            // console.log("No such document!");
         }
     }
 
@@ -240,9 +237,12 @@ function App() {
                 tasks: arrayUnion({ taskId, imageUrl, timestamp }) // Add the new task without overwriting the array
             });
             await checkData(userID);
-        } catch (error) {
-          console.error("Error uploading task data:", error);
-          throw new Error("Failed to upload task data");
+        }  catch(error) {
+            if (error instanceof Error) {
+                setError(`Error submitting team data: ${error.message}`);
+            } else {
+                setError("An unknown error occurred");
+            }
         }
     };
 
@@ -256,17 +256,21 @@ function App() {
 
     const handleUpload = async (taskID: string) => {
         if (!selectedFile) {
-          alert("Please select an image file before uploading.");
-          return;
+            alert("Please select an image file before uploading.");
+            return;
         }
     
         try {
-          const uploadedData = await uploadTaskData(teamName, taskID, selectedFile);
-          console.log("Uploaded data:", uploadedData);
-          alert("File uploaded successfully!");
-        } catch (error) {
-          console.error("Error uploading file:", error);
-          alert("File upload failed.");
+            await uploadTaskData(teamName, taskID, selectedFile);
+            // console.log("Uploaded data:", uploadedData);
+            setMessage("File uploaded successfully!");
+            alert("File uploaded successfully!");
+        }  catch(error) {
+            if (error instanceof Error) {
+                setError(`Error submitting team data: ${error.message}`);
+            } else {
+                setError("An unknown error occurred");
+            }
         }
     };
 
@@ -346,7 +350,7 @@ function App() {
                     </ol>
                 </div>
             )}
-            <div className="p-6 flex flex-col justify-center items-center min-h-screen w-full text-white">
+            <div className={`p-6 flex flex-col justify-center items-center h-full w-full text-white ${userID ? "min-h-0" : "min-h-[calc(100vh-100px)]" }`}>
                 {!user ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                         <Card className="w-[350px]">
@@ -420,7 +424,7 @@ function App() {
                 ) : (
                     <>
                         {!teamDataSubmitted ? (
-                            <motion.form onSubmit={handleTeamDataSubmit} className="border dark:border-gray-700 p-5 rounded-3xl gap-6 shadow-lg bg-gray-800" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
+                            <motion.form onSubmit={handleTeamDataSubmit} className="border dark:border-gray-700 p-5 rounded-3xl gap-6 shadow-lg bg-gray-800 w-[500px]" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
                                 <div className="flex justify-center items-center">
                                     <img src={infinia} alt="Infinia Logo" className="object-fit h-16" />
                                 </div>
@@ -433,10 +437,8 @@ function App() {
                                     <div key={index} className="flex flex-col mb-4">
                                         <h3 className="text-lg font-semibold">Member {index + 1}</h3>
                                         <div className="flex gap-4 ml-5">
-                                            <div>
-                                                <label className="block text-md mb-1">Name:</label>
-                                                <Input type="text" value={member.name} onChange={(e) => handleInputChange(index, "name", e.target.value)} className="w-full border-b border-gray-400 focus:border-blue-500 bg-transparent" required />
-                                            </div>
+                                            <label className="block text-md mb-1">Name:</label>
+                                            <Input type="text" value={member.name} onChange={(e) => handleInputChange(index, "name", e.target.value)} className="w-full border-b border-gray-400 focus:border-blue-500 bg-transparent" required />
                                         </div>
                                     </div>
                                 ))}
@@ -471,7 +473,8 @@ function App() {
                                 ) : (
                                     <p>No tasks available.</p>
                                 )}
-                                {error && <p className="text-red-500">{message}</p>}
+                                {error && <p className="text-red-500">{error}</p>}
+                                {message && <p className="text-green-500">{message}</p>}
                             </motion.div>
                         )}
                     </>
